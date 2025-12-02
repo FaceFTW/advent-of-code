@@ -41,8 +41,8 @@ impl Sub for SafeNumber {
             rhs_acc = rhs_acc - 100;
         }
 
-        if acc + rhs_acc > 100 || rhs_acc >= acc {
-            SafeNumber(acc + 100 - rhs_acc)
+        if rhs_acc >= acc {
+            SafeNumber(acc + 99 - rhs_acc)
         } else {
             SafeNumber(acc - rhs_acc)
         }
@@ -109,7 +109,7 @@ fn part1(data: &[Instruction]) {
         }
     }
 
-    println!("Day  Part 1 result: {acc}");
+    println!("Part 1 result: {acc}");
 }
 
 fn part2() {
