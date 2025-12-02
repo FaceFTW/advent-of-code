@@ -43,7 +43,7 @@ impl Sub for SafeNumber {
         if acc + rhs_acc > 100 {
             SafeNumber(rhs_acc - acc)
         } else {
-            SafeNumber(acc + rhs_acc)
+            SafeNumber(acc - rhs_acc)
         }
     }
 }
