@@ -1,10 +1,6 @@
-use std::{
-    fs::File,
-    io::Read,
-    ops::{Add, Sub},
-};
+use std::{fs::File, io::Read};
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 enum Direction {
     Left,
     Right,
@@ -13,46 +9,20 @@ enum Direction {
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
 struct SafeNumber(u16);
 
-impl Add for SafeNumber {
-    type Output = SafeNumber;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        let acc = self.0;
-        let mut rhs_acc = rhs.0;
-        while rhs_acc >= 100 {
-            rhs_acc = rhs_acc - 100;
-        }
-
-        if acc + rhs_acc > 100 {
-            SafeNumber(acc - (100 - rhs_acc))
-        } else {
-            SafeNumber(acc + rhs_acc)
-        }
-    }
-}
-
-impl Sub for SafeNumber {
-    type Output = SafeNumber;
-
-    fn sub(self, rhs: Self) -> Self::Output {
-        let acc = self.0;
-        let mut rhs_acc = rhs.0;
-        while rhs_acc >= 100 {
-            rhs_acc = rhs_acc - 100;
-        }
-
-        if rhs_acc >= acc {
-            SafeNumber(acc + 99 - rhs_acc)
-        } else {
-            SafeNumber(acc - rhs_acc)
-        }
+impl SafeNumber {
+    fn turn_dial(&mut self, dir: Direction, amt: u16) {
+        let new_pos = match dir {
+            Direction::Left => self.0 as i16 + amt as i16,
+            Direction::Right => self.0 as i16 - amt as i16,
+        };
+        self.0 = new_pos.rem_euclid(100).abs() as u16;
     }
 }
 
 #[derive(Debug)]
 struct Instruction {
     dir: Direction,
-    len: SafeNumber,
+    amt: u16,
 }
 
 fn main() {
@@ -75,7 +45,7 @@ fn parse_data(string: &str) -> Vec<Instruction> {
         .trim_end()
         .split("\n")
         .map(|raw| {
-            println!("{raw}");
+            // println!("{raw}");
             let dir = match raw.chars().nth(0) {
                 Some('L') => Direction::Left,
                 Some('R') => Direction::Right,
@@ -83,11 +53,10 @@ fn parse_data(string: &str) -> Vec<Instruction> {
             };
 
             let num_only = raw.split_at(1).1.trim();
-            println!("{num_only}");
-            let len = SafeNumber(
-                u16::from_str_radix(num_only, 10).expect("Malformed Instruction - bad number!"),
-            );
-            Instruction { dir, len }
+            // println!("{num_only}");
+            let amt =
+                u16::from_str_radix(num_only, 10).expect("Malformed Instruction - bad number!");
+            Instruction { dir, amt }
         })
         .collect()
 }
@@ -97,11 +66,8 @@ fn part1(data: &[Instruction]) {
     let mut safe_state = SafeNumber(50);
 
     for instr in data {
-        println!("Current State: {}, Instruction: {:?}", safe_state.0, instr);
-        match instr.dir {
-            Direction::Left => safe_state = safe_state - instr.len,
-            Direction::Right => safe_state = safe_state + instr.len,
-        }
+        println!("Current State: {}\nInstruction: {:?}", safe_state.0, instr);
+        safe_state.turn_dial(instr.dir, instr.amt);
         println!("New State: {}", safe_state.0);
 
         if safe_state.0 == 0 {
